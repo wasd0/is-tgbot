@@ -1,0 +1,8 @@
+env: stage
+log_path: is/log/bot
+
+server:
+  port: 8501
+  host: 
+  timeout: 4s
+  idle_timeout: 60s

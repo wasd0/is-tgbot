@@ -1,0 +1,7 @@
+env: dev
+
+server:
+  port: 8500
+  host: 
+  timeout: 4s
+  idle_timeout: 60s

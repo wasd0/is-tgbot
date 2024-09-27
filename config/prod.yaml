@@ -1,0 +1,8 @@
+env: prod
+log_path: is/log/bot
+
+server:
+  port: 8502
+  host: 
+  timeout: 4s
+  idle_timeout: 60s
