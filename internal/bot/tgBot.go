@@ -5,12 +5,15 @@ import (
 	"errors"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
-	"is-tgbot/models/keyboard"
+	"is-tgbot/internal/command"
+	"is-tgbot/internal/keys"
 	"is-tgbot/pkg/logger"
 	"os"
 )
 
 const initError = "bot init error"
+
+var provider *command.Provider
 
 func Start(ctx context.Context) {
 	token := os.Getenv("TOKEN")
@@ -28,45 +31,58 @@ func Start(ctx context.Context) {
 	if b, err := bot.New(token, opts...); err != nil {
 		logger.Log().Fatal(err, initError)
 	} else {
+		provider = command.NewCommandProvider(b)
 		b.Start(ctx)
 	}
 }
 
 func callbackHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+
+	if update == nil {
+		return
+	}
+
 	if update.CallbackQuery == nil || update.CallbackQuery.Message.Message == nil {
 		return
 	}
 
+	callback := *update.CallbackQuery
+
 	if _, err := b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
-		CallbackQueryID: update.CallbackQuery.ID,
+		CallbackQueryID: callback.ID,
 		ShowAlert:       false,
 	}); err != nil {
 		logger.Log().Error(err, "Callback error")
 	}
 
-	// mock logic
-	if _, err := b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.CallbackQuery.Message.Message.Chat.ID,
-		Text:   "You selected the button: " + update.CallbackQuery.Data,
-	}); err != nil {
-		logger.Log().Error(err, "Send message error")
-	}
-}
+	logger.Log().Infof("TgID: %v, button: %s", callback.From.ID, callback.Data)
 
-func defaultHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	kb := &models.InlineKeyboardMarkup{
-		InlineKeyboard: keyboard.MainMenu,
-	}
+	data := callback.Data
 
-	if update.Message == nil {
+	if err := deleteMessage(ctx, b, callback); err != nil {
+		logger.Log().Errorf(err, "delete message error, chat id: %d", callback.From.ID)
 		return
 	}
 
-	if _, err := b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID:      update.Message.Chat.ID,
-		Text:        "💸Ваш баланс: 00.00 руб.\n🌍Страна: Россия\n🌐Оператор: -",
-		ReplyMarkup: kb,
-	}); err != nil {
-		logger.Log().Error(err, "Send message error")
+	handler := provider.Get(data)
+
+	if handler == nil {
+		logger.Log().Errorf(errors.New("handler not found"), "Error handle command: %s", data)
+		return
 	}
+
+	handler.Handle(ctx, b, update)
+}
+
+func defaultHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	provider.Get(keys.Menu).Handle(ctx, b, update)
+}
+
+func deleteMessage(ctx context.Context, b *bot.Bot, callback models.CallbackQuery) error {
+	_, err := b.DeleteMessage(ctx, &bot.DeleteMessageParams{
+		ChatID:    callback.From.ID,
+		MessageID: callback.Message.Message.ID,
+	})
+
+	return err
 }
