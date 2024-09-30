@@ -71,7 +71,7 @@ func callbackHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 
-	handler.Handle(ctx, b, update)
+	go handler.Handle(ctx, b, update)
 }
 
 func defaultHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
