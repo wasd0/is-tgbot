@@ -61,7 +61,6 @@ func callbackHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 	if err := deleteMessage(ctx, b, callback); err != nil {
 		logger.Log().Errorf(err, "delete message error, chat id: %d", callback.From.ID)
-		return
 	}
 
 	handler := provider.Get(data)

@@ -30,7 +30,7 @@ func (pc *Profile) Handle(ctx context.Context, b *bot.Bot, update *models.Update
 	customer, err := client.GetCustomer(request)
 
 	if err != nil {
-		logger.Log().Errorf(err, "get customer info error:")
+		logger.Log().Error(err, "get customer info error:")
 	}
 
 	id := customer.ID
