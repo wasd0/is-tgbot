@@ -8,7 +8,7 @@ import (
 	"is-tgbot/internal/client"
 	"is-tgbot/internal/keys"
 	"is-tgbot/internal/model"
-	"is-tgbot/internal/models/keyboard"
+	"is-tgbot/internal/model/keyboard"
 	"is-tgbot/internal/utils/sender"
 	"is-tgbot/pkg/logger"
 )

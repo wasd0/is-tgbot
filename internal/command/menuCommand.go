@@ -5,7 +5,7 @@ import (
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 	"is-tgbot/internal/keys"
-	"is-tgbot/internal/models/keyboard"
+	"is-tgbot/internal/model/keyboard"
 	"is-tgbot/internal/utils/sender"
 )
 
