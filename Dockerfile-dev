@@ -6,7 +6,7 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY /. .
-COPY .env.prod .env
+COPY .env.dev .env
 
 RUN go build -o main.out cmd/is-tgbot/main.go
 
