@@ -30,7 +30,7 @@ func (c *Menu) GetCommand() string {
 func (c *Menu) Handle(ctx context.Context, b *bot.Bot, update *models.Update, cache *redis.Client) {
 	var balance model.BalanceGetResponse
 
-	if cacheBalance := storage.GetStruct[model.BalanceGetResponse](cache, ctx, keys.RedisBalance); cacheBalance != nil && cacheBalance.BalanceId != 0 {
+	if cacheBalance := storage.GetStruct[model.BalanceGetResponse](cache, ctx, keys.RedisBalance); cacheBalance != nil {
 		balance = *cacheBalance
 	} else {
 		balance = getBalanceFromServer(ctx, update, cache)
