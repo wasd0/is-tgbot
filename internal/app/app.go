@@ -24,14 +24,14 @@ func runServer(ctx context.Context) {
 	cfg := config.MustRead()
 	closer := &app.Closer{}
 	_, loggerCallback := zero.MustSetUp(cfg)
-	redis, redisCallback := storage.MustOpenRedis(ctx)
+	_, redisCallback := storage.MustOpenRedis(ctx)
 
 	closer.Add(loggerCallback)
 	closer.Add(redisCallback)
 
 	printStartMessage(cfg)
 
-	bot.Start(ctx, redis)
+	bot.Start(ctx)
 
 	<-ctx.Done()
 

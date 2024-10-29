@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
-	"github.com/redis/go-redis/v9"
 	"is-tgbot/internal/client"
 	"is-tgbot/internal/keys"
 	"is-tgbot/internal/model"
@@ -27,14 +26,14 @@ func (pc *Profile) GetCommand() string {
 	return keys.Profile
 }
 
-func (pc *Profile) Handle(ctx context.Context, b *bot.Bot, update *models.Update, cache *redis.Client) {
+func (pc *Profile) Handle(ctx context.Context, b *bot.Bot, update *models.Update) {
 	request := getCustomerRequest(update)
 	customer, err := client.GetCustomer(request)
 
 	if err != nil {
 		logger.Log().Error(err, "get customer info error:")
 	} else {
-		storage.SetStruct(cache, ctx, keys.RedisCustomer, customer)
+		storage.SetStruct(ctx, *getChatId(update), keys.RedisCustomer, customer)
 	}
 
 	id := customer.ID

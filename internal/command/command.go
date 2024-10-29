@@ -2,14 +2,15 @@ package command
 
 import (
 	"context"
+	"errors"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
-	"github.com/redis/go-redis/v9"
+	"is-tgbot/pkg/logger"
 )
 
 type Command interface {
 	GetCommand() string
-	Handle(ctx context.Context, b *bot.Bot, update *models.Update, cache *redis.Client)
+	Handle(ctx context.Context, b *bot.Bot, update *models.Update)
 }
 
 func getChatId(update *models.Update) *int64 {
@@ -19,6 +20,9 @@ func getChatId(update *models.Update) *int64 {
 		chatId = &update.Message.Chat.ID
 	} else if update.CallbackQuery != nil {
 		chatId = &update.CallbackQuery.From.ID
+	} else {
+		logger.Log().Error(errors.New("cannot get chat id"), update.Message.Chat.Username)
+		return nil
 	}
 
 	return chatId

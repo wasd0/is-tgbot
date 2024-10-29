@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/redis/go-redis/v9"
 	"is-tgbot/pkg/logger"
 	"os"
@@ -11,13 +12,15 @@ import (
 )
 
 const (
-	CacheStoreDuration = time.Minute * 15
+	CacheStoreDuration = time.Minute * 5
 
 	redisUrl = "REDIS_URL"
 )
 
 type redisLogger struct {
 }
+
+var db *redis.Client
 
 func (l redisLogger) Printf(_ context.Context, format string, v ...interface{}) {
 	logger.Log().Infof(format, v)
@@ -32,33 +35,33 @@ func MustOpenRedis(ctx context.Context) (*redis.Client, func(ctx context.Context
 
 	redis.SetLogger(redisLogger{})
 
-	client := redis.NewClient(opts)
-	if err := client.Ping(ctx).Err(); err != nil {
+	db = redis.NewClient(opts)
+	if err := db.Ping(ctx).Err(); err != nil {
 		logger.Log().Fatal(err, "connect to redis")
 	}
 
-	return client, func(ctx context.Context) error {
+	return db, func(ctx context.Context) error {
 		logger.Log().Info("redis client closing")
-		return client.Close()
+		return db.Close()
 	}
 }
 
-func Set(cache *redis.Client, ctx context.Context, key string, value interface{}) {
-	if err := cache.Set(ctx, key, value, CacheStoreDuration).Err(); err != nil {
-		logger.Log().Error(err, "error redis set key: "+key)
+func Set(ctx context.Context, id int64, key string, value interface{}) {
+	if err := db.Set(ctx, getKey(id, key), value, CacheStoreDuration).Err(); err != nil {
+		logger.Log().Errorf(err, "set key %s with value %v", key, value)
 	}
 }
 
-func SetStruct(cache *redis.Client, ctx context.Context, key string, value interface{}) {
+func SetStruct(ctx context.Context, id int64, key string, value interface{}) {
 	if jsonData, err := json.Marshal(value); err != nil {
-		logger.Log().Error(err, "error redis marshal value")
+		logger.Log().Errorf(err, "error redis marshal value %v", value)
 	} else {
-		Set(cache, ctx, key, jsonData)
+		Set(ctx, id, key, jsonData)
 	}
 }
 
-func GetStruct[T interface{}](cache *redis.Client, ctx context.Context, key string) *T {
-	if jsonVal, err := cache.Get(ctx, key).Result(); err != nil {
+func GetStruct[T interface{}](ctx context.Context, id int64, key string) *T {
+	if jsonVal, err := db.Get(ctx, getKey(id, key)).Result(); err != nil {
 		if errors.Is(err, redis.Nil) {
 			return nil
 		} else {
@@ -74,4 +77,8 @@ func GetStruct[T interface{}](cache *redis.Client, ctx context.Context, key stri
 	}
 
 	return nil
+}
+
+func getKey(id int64, key string) string {
+	return fmt.Sprintf("%s_%d", key, id)
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
-	"github.com/redis/go-redis/v9"
 	"is-tgbot/internal/client"
 	"is-tgbot/internal/keys"
 	"is-tgbot/internal/model"
@@ -27,21 +26,21 @@ func (c *Menu) GetCommand() string {
 	return keys.Menu
 }
 
-func (c *Menu) Handle(ctx context.Context, b *bot.Bot, update *models.Update, cache *redis.Client) {
+func (c *Menu) Handle(ctx context.Context, b *bot.Bot, update *models.Update) {
 	var balance model.BalanceGetResponse
 
-	if cacheBalance := storage.GetStruct[model.BalanceGetResponse](cache, ctx, keys.RedisBalance); cacheBalance != nil {
+	if cacheBalance := storage.GetStruct[model.BalanceGetResponse](ctx, *getChatId(update), keys.RedisBalance); cacheBalance != nil {
 		balance = *cacheBalance
 	} else {
-		balance = getBalanceFromServer(ctx, update, cache)
+		balance = getBalanceFromServer(ctx, update)
 	}
 
 	text := fmt.Sprintf("💸Ваш баланс: %s %s.\n🌍Страна: Россия\n🌐Оператор: -", *balance.Sum, balance.Currency)
 	utils.SendKeyboard(ctx, keyboard.MainMenu, update, text, b)
 }
 
-func getBalanceFromServer(ctx context.Context, update *models.Update, cache *redis.Client) model.BalanceGetResponse {
-	request := getBalanceRequest(ctx, update, cache)
+func getBalanceFromServer(ctx context.Context, update *models.Update) model.BalanceGetResponse {
+	request := getBalanceRequest(ctx, update)
 	balance, err := client.GetBalance(request)
 	sum, curr := "0.0", "RUB"
 	if err != nil {
@@ -49,20 +48,20 @@ func getBalanceFromServer(ctx context.Context, update *models.Update, cache *red
 		balance.Sum = &sum
 		balance.Currency = curr
 	}
-	storage.SetStruct(cache, ctx, keys.RedisBalance, balance)
+	storage.SetStruct(ctx, *getChatId(update), keys.RedisBalance, balance)
 	return balance
 }
 
-func getBalanceRequest(ctx context.Context, update *models.Update, cache *redis.Client) model.BalanceGetRequest {
+func getBalanceRequest(ctx context.Context, update *models.Update) model.BalanceGetRequest {
 	var customerId *int64
 	var telegramId *int64
 	currencyCode := keys.CurrencyRub
 
-	if balance := storage.GetStruct[model.BalanceGetResponse](cache, ctx, keys.RedisBalance); balance != nil {
+	if balance := storage.GetStruct[model.BalanceGetResponse](ctx, *getChatId(update), keys.RedisBalance); balance != nil {
 		currencyCode = balance.Currency
 	}
 
-	if customer := storage.GetStruct[model.CustomerResponse](cache, ctx, keys.RedisCustomer); customer != nil {
+	if customer := storage.GetStruct[model.CustomerResponse](ctx, *getChatId(update), keys.RedisCustomer); customer != nil {
 		if customer.ID != 0 {
 			customerId = &customer.ID
 		}
