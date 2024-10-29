@@ -1,5 +1,6 @@
 package keys
 
 const (
-	Customer = "/api/v1/customers"
+	PathCustomer = "/api/v1/customers"
+	PathBalance  = "/api/v1/balance"
 )

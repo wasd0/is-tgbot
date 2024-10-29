@@ -4,11 +4,12 @@ import (
 	"context"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
+	"github.com/redis/go-redis/v9"
 )
 
 type Command interface {
 	GetCommand() string
-	Handle(ctx context.Context, b *bot.Bot, update *models.Update)
+	Handle(ctx context.Context, b *bot.Bot, update *models.Update, cache *redis.Client)
 }
 
 func getChatId(update *models.Update) *int64 {

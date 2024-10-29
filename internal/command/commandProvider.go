@@ -12,8 +12,9 @@ type Provider struct {
 
 func NewCommandProvider(bot *bot.Bot) *Provider {
 	commands := map[string]Command{
-		keys.Profile: NewProfileCommand(bot),
-		keys.Menu:    NewMenuCommand(bot),
+		keys.Profile:  NewProfileCommand(bot),
+		keys.Menu:     NewMenuCommand(bot),
+		keys.Settings: NewSettingsCommand(bot),
 	}
 	return &Provider{bot: bot, commands: commands}
 }

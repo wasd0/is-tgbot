@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
+	"github.com/redis/go-redis/v9"
 	"is-tgbot/internal/command"
 	"is-tgbot/internal/keys"
 	"is-tgbot/pkg/logger"
@@ -15,7 +16,9 @@ const initError = "bot init error"
 
 var provider *command.Provider
 
-func Start(ctx context.Context) {
+var cache *redis.Client
+
+func Start(ctx context.Context, redis *redis.Client) {
 	token := os.Getenv("TOKEN")
 
 	if token == "" {
@@ -32,6 +35,7 @@ func Start(ctx context.Context) {
 		logger.Log().Fatal(err, initError)
 	} else {
 		provider = command.NewCommandProvider(b)
+		cache = redis
 		b.Start(ctx)
 	}
 }
@@ -70,11 +74,11 @@ func callbackHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 
-	go handler.Handle(ctx, b, update)
+	go handler.Handle(ctx, b, update, cache)
 }
 
 func defaultHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	provider.Get(keys.Menu).Handle(ctx, b, update)
+	go provider.Get(keys.Menu).Handle(ctx, b, update, cache)
 }
 
 func deleteMessage(ctx context.Context, b *bot.Bot, callback models.CallbackQuery) error {

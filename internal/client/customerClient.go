@@ -9,17 +9,10 @@ import (
 	"is-tgbot/internal/model"
 	"is-tgbot/pkg/logger"
 	"net/http"
-	"os"
 )
 
 func GetCustomer(request model.CustomerGetRequest) (model.CustomerResponse, error) {
-	url := os.Getenv(keys.Server)
-
-	if len(url) == 0 {
-		return model.CustomerResponse{}, errors.New("env error")
-	}
-
-	url += keys.Customer
+	url := getServerUrl() + keys.PathCustomer
 
 	body, jsonError := json.Marshal(request)
 
@@ -41,7 +34,7 @@ func GetCustomer(request model.CustomerGetRequest) (model.CustomerResponse, erro
 		return model.CustomerResponse{}, readError
 	}
 
-	logger.Log().Infof("%s: response", keys.Customer)
+	logger.Log().Infof("%s: response", keys.PathCustomer)
 
 	var customer model.Response[model.CustomerResponse]
 
@@ -50,6 +43,13 @@ func GetCustomer(request model.CustomerGetRequest) (model.CustomerResponse, erro
 	if unmarshallErr != nil {
 		return model.CustomerResponse{}, unmarshallErr
 	}
+	if customer.Data == nil {
+		var errResp model.ErrResponse
+		if jsonErr := json.Unmarshal(byteData, &errResp); jsonErr != nil {
+			return model.CustomerResponse{}, jsonErr
+		}
+		return model.CustomerResponse{}, errors.New(errResp.Message)
+	}
 
-	return customer.Data, nil
+	return *customer.Data, nil
 }

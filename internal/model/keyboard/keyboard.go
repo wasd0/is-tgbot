@@ -5,6 +5,13 @@ import (
 	"is-tgbot/internal/keys"
 )
 
+var (
+	menuButton = models.InlineKeyboardButton{
+		Text:         "Ⓜ️Меню",
+		CallbackData: keys.Menu,
+	}
+)
+
 var MainMenu = [][]models.InlineKeyboardButton{
 	{
 		{Text: "📱Купить номер", CallbackData: keys.BuyNumber},
@@ -26,6 +33,12 @@ var ProfileMenu = [][]models.InlineKeyboardButton{
 		{Text: "💸Пополнить баланс", CallbackData: keys.Deposit},
 	},
 	{
-		{Text: "Ⓜ️Меню", CallbackData: keys.Menu},
+		menuButton,
+	},
+}
+
+var Settings = [][]models.InlineKeyboardButton{
+	{
+		menuButton,
 	},
 }
