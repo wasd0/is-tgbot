@@ -27,13 +27,19 @@ func (pc *Profile) GetCommand() string {
 }
 
 func (pc *Profile) Handle(ctx context.Context, b *bot.Bot, update *models.Update) {
-	request := getCustomerRequest(update)
-	customer, err := client.GetCustomer(request)
+	var err error
+	customer := model.CustomerResponse{}
+	pc.cache.GetStruct(ctx, *getChatId(update), keys.RedisCustomer, &customer)
 
-	if err != nil {
-		logger.Log().Error(err, "get customer info error:")
-	} else {
-		pc.cache.SetStruct(ctx, *getChatId(update), keys.RedisCustomer, customer)
+	if customer.TelegramID == nil {
+		request := getCustomerRequest(update)
+		customer, err = client.GetCustomer(request)
+
+		if err != nil {
+			logger.Log().Error(err, "get customer info error:")
+		} else {
+			pc.cache.SetStruct(ctx, *getChatId(update), keys.RedisCustomer, customer)
+		}
 	}
 
 	id := customer.ID
