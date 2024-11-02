@@ -1,7 +1,7 @@
 package config
 
 import (
-	"is-tgbot/pkg/consts"
+	"is-tgbot/internal/keys"
 	"os"
 	"time"
 
@@ -41,7 +41,7 @@ func MustRead() *Config {
 		}
 	}
 
-	configPath := os.Getenv(consts.EnvConfig)
+	configPath := os.Getenv(keys.EnvConfig)
 
 	if len(configPath) == 0 {
 		panic("Config file path not found in environment")

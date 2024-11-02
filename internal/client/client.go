@@ -9,7 +9,7 @@ import (
 )
 
 func getServerUrl() string {
-	var serverUrl = os.Getenv(keys.Server)
+	var serverUrl = os.Getenv(keys.EnvServer)
 
 	if len(serverUrl) == 0 {
 		panic("server environment variable not set")

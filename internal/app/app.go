@@ -2,7 +2,9 @@ package app
 
 import (
 	"context"
+	"is-tgbot/internal/app/serviceProvider"
 	"is-tgbot/internal/bot"
+	"is-tgbot/internal/command"
 	"is-tgbot/internal/storage"
 	"is-tgbot/pkg/app"
 	"is-tgbot/pkg/config"
@@ -22,16 +24,19 @@ func Startup() {
 
 func runServer(ctx context.Context) {
 	cfg := config.MustRead()
-	closer := &app.Closer{}
 	_, loggerCallback := zero.MustSetUp(cfg)
-	_, redisCallback := storage.MustOpenRedis(ctx)
+	redisClient, redisCallback := storage.MustOpenRedis(ctx)
+	closer := &app.Closer{}
+
+	servProvider := serviceProvider.NewServiceProvider(redisClient)
+	commandProvider := command.NewCommandProvider(servProvider)
 
 	closer.Add(loggerCallback)
 	closer.Add(redisCallback)
 
 	printStartMessage(cfg)
 
-	bot.Start(ctx)
+	bot.Start(ctx, commandProvider)
 
 	<-ctx.Done()
 

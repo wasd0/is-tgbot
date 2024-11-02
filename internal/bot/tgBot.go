@@ -13,30 +13,37 @@ import (
 
 const initError = "bot init error"
 
-var provider *command.Provider
+type isBot struct {
+	provider *command.Provider
+}
 
-func Start(ctx context.Context) {
-	token := os.Getenv("TOKEN")
+func Start(ctx context.Context, provider *command.Provider) {
+	token := os.Getenv(keys.EnvToken)
 
 	if token == "" {
 		logger.Log().Fatal(errors.New(initError), "TOKEN environment variable is empty")
 	}
 
+	ib := &isBot{provider: provider}
+
 	opts := []bot.Option{
-		bot.WithDefaultHandler(defaultHandler),
-		bot.WithCallbackQueryDataHandler("button", bot.MatchTypePrefix, callbackHandler),
+		bot.WithDefaultHandler(ib.defaultHandler),
+		bot.WithCallbackQueryDataHandler("button", bot.MatchTypePrefix, ib.callbackHandler),
 		bot.WithWorkers(10),
+		bot.WithDebugHandler(logger.Log().Infof),
+		bot.WithErrorsHandler(func(err error) {
+			logger.Log().Error(err, err.Error())
+		}),
 	}
 
 	if b, err := bot.New(token, opts...); err != nil {
 		logger.Log().Fatal(err, initError)
 	} else {
-		provider = command.NewCommandProvider(b)
 		b.Start(ctx)
 	}
 }
 
-func callbackHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+func (ib *isBot) callbackHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 	if update == nil {
 		return
@@ -63,7 +70,7 @@ func callbackHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		logger.Log().Errorf(err, "delete message error, chat id: %d", callback.From.ID)
 	}
 
-	handler := provider.Get(data)
+	handler := ib.provider.Get(data)
 
 	if handler == nil {
 		logger.Log().Errorf(errors.New("handler not found"), "Error handle command: %s", data)
@@ -73,8 +80,8 @@ func callbackHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	go handler.Handle(ctx, b, update)
 }
 
-func defaultHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	go provider.Get(keys.Menu).Handle(ctx, b, update)
+func (ib *isBot) defaultHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	go ib.provider.Get(keys.Menu).Handle(ctx, b, update)
 }
 
 func deleteMessage(ctx context.Context, b *bot.Bot, callback models.CallbackQuery) error {

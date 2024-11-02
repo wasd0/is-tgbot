@@ -10,11 +10,10 @@ import (
 )
 
 type Settings struct {
-	bot *bot.Bot
 }
 
-func NewSettingsCommand(bot *bot.Bot) *Settings {
-	return &Settings{bot: bot}
+func NewSettingsCommand() *Settings {
+	return &Settings{}
 }
 
 func (s *Settings) GetCommand() string {

@@ -1,22 +1,22 @@
 package command
 
 import (
-	"github.com/go-telegram/bot"
+	"is-tgbot/internal/app/serviceProvider"
 	"is-tgbot/internal/keys"
 )
 
 type Provider struct {
-	bot      *bot.Bot
 	commands map[string]Command
+	services *serviceProvider.ServiceProvider
 }
 
-func NewCommandProvider(bot *bot.Bot) *Provider {
+func NewCommandProvider(services *serviceProvider.ServiceProvider) *Provider {
 	commands := map[string]Command{
-		keys.Profile:  NewProfileCommand(bot),
-		keys.Menu:     NewMenuCommand(bot),
-		keys.Settings: NewSettingsCommand(bot),
+		keys.Profile:  NewProfileCommand(services.CacheService()),
+		keys.Menu:     NewMenuCommand(services.CacheService()),
+		keys.Settings: NewSettingsCommand(),
 	}
-	return &Provider{bot: bot, commands: commands}
+	return &Provider{commands: commands, services: services}
 }
 
 func (cp *Provider) Get(command string) Command {

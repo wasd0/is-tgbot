@@ -9,17 +9,17 @@ import (
 	"is-tgbot/internal/keys"
 	"is-tgbot/internal/model"
 	"is-tgbot/internal/model/keyboard"
-	"is-tgbot/internal/storage"
+	"is-tgbot/internal/service"
 	"is-tgbot/internal/utils"
 	"is-tgbot/pkg/logger"
 )
 
 type Menu struct {
-	bot *bot.Bot
+	cache service.CacheService
 }
 
-func NewMenuCommand(bot *bot.Bot) *Menu {
-	return &Menu{bot: bot}
+func NewMenuCommand(cache service.CacheService) *Menu {
+	return &Menu{cache: cache}
 }
 
 func (c *Menu) GetCommand() string {
@@ -27,20 +27,19 @@ func (c *Menu) GetCommand() string {
 }
 
 func (c *Menu) Handle(ctx context.Context, b *bot.Bot, update *models.Update) {
-	var balance model.BalanceGetResponse
+	balance := model.BalanceGetResponse{}
+	c.cache.GetStruct(ctx, *getChatId(update), keys.RedisBalance, &balance)
 
-	if cacheBalance := storage.GetStruct[model.BalanceGetResponse](ctx, *getChatId(update), keys.RedisBalance); cacheBalance != nil {
-		balance = *cacheBalance
-	} else {
-		balance = getBalanceFromServer(ctx, update)
+	if balance.BalanceId == 0 {
+		balance = c.getBalanceFromServer(ctx, update)
 	}
 
 	text := fmt.Sprintf("💸Ваш баланс: %s %s.\n🌍Страна: Россия\n🌐Оператор: -", *balance.Sum, balance.Currency)
 	utils.SendKeyboard(ctx, keyboard.MainMenu, update, text, b)
 }
 
-func getBalanceFromServer(ctx context.Context, update *models.Update) model.BalanceGetResponse {
-	request := getBalanceRequest(ctx, update)
+func (c *Menu) getBalanceFromServer(ctx context.Context, update *models.Update) model.BalanceGetResponse {
+	request := c.getBalanceRequest(ctx, update)
 	balance, err := client.GetBalance(request)
 	sum, curr := "0.0", "RUB"
 	if err != nil {
@@ -48,23 +47,27 @@ func getBalanceFromServer(ctx context.Context, update *models.Update) model.Bala
 		balance.Sum = &sum
 		balance.Currency = curr
 	}
-	storage.SetStruct(ctx, *getChatId(update), keys.RedisBalance, balance)
+	c.cache.SetStruct(ctx, *getChatId(update), keys.RedisBalance, balance)
 	return balance
 }
 
-func getBalanceRequest(ctx context.Context, update *models.Update) model.BalanceGetRequest {
+func (c *Menu) getBalanceRequest(ctx context.Context, update *models.Update) model.BalanceGetRequest {
 	var customerId *int64
 	var telegramId *int64
 	currencyCode := keys.CurrencyRub
 
-	if balance := storage.GetStruct[model.BalanceGetResponse](ctx, *getChatId(update), keys.RedisBalance); balance != nil {
+	balance := model.BalanceGetResponse{}
+	c.cache.GetStruct(ctx, *getChatId(update), keys.RedisBalance, &balance)
+	if balance.BalanceId != 0 {
 		currencyCode = balance.Currency
 	}
 
-	if customer := storage.GetStruct[model.CustomerResponse](ctx, *getChatId(update), keys.RedisCustomer); customer != nil {
-		if customer.ID != 0 {
-			customerId = &customer.ID
-		}
+	customer := model.CustomerResponse{}
+	c.cache.GetStruct(ctx, *getChatId(update), keys.RedisCustomer, &customer)
+
+	if customer.ID != 0 {
+		customerId = &customer.ID
+	} else if customer.TelegramID != nil {
 		telegramId = customer.TelegramID
 	} else {
 		telegramId = getChatId(update)
