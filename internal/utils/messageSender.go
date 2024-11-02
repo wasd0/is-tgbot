@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
-	"is-tgbot/pkg/logger"
+	"github.com/wasd0/is-common/pkg/logger"
 )
 
 func SendKeyboard(ctx context.Context, keyboard [][]models.InlineKeyboardButton, update *models.Update, text string, b *bot.Bot) {

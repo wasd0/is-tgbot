@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
-	"is-tgbot/pkg/logger"
+	"github.com/wasd0/is-common/pkg/logger"
 )
 
 type Command interface {

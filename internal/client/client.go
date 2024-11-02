@@ -1,9 +1,9 @@
 package client
 
 import (
+	"github.com/wasd0/is-common/pkg/logger"
 	"io"
 	"is-tgbot/internal/keys"
-	"is-tgbot/pkg/logger"
 	"net/http"
 	"os"
 )

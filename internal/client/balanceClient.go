@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/wasd0/is-common/pkg/logger"
 	"io"
 	"is-tgbot/internal/keys"
 	"is-tgbot/internal/model"
 	"is-tgbot/internal/utils"
-	"is-tgbot/pkg/logger"
 	"net/http"
 )
 

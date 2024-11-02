@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
+	"github.com/wasd0/is-common/pkg/logger"
 	"is-tgbot/internal/client"
 	"is-tgbot/internal/keys"
 	"is-tgbot/internal/model"
 	"is-tgbot/internal/model/keyboard"
 	"is-tgbot/internal/service"
 	"is-tgbot/internal/utils"
-	"is-tgbot/pkg/logger"
 )
 
 type Menu struct {

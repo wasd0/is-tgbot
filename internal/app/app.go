@@ -2,14 +2,14 @@ package app
 
 import (
 	"context"
+	"github.com/wasd0/is-common/pkg/app"
+	"github.com/wasd0/is-common/pkg/config"
+	"github.com/wasd0/is-common/pkg/logger"
+	"github.com/wasd0/is-common/pkg/logger/zero"
 	"is-tgbot/internal/app/serviceProvider"
 	"is-tgbot/internal/bot"
 	"is-tgbot/internal/command"
 	"is-tgbot/internal/storage"
-	"is-tgbot/pkg/app"
-	"is-tgbot/pkg/config"
-	"is-tgbot/pkg/logger"
-	"is-tgbot/pkg/logger/zero"
 	"os/signal"
 	"syscall"
 )

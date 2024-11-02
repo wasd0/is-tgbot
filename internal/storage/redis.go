@@ -3,8 +3,8 @@ package storage
 import (
 	"context"
 	"github.com/redis/go-redis/v9"
+	"github.com/wasd0/is-common/pkg/logger"
 	"is-tgbot/internal/keys"
-	"is-tgbot/pkg/logger"
 	"os"
 	"time"
 )

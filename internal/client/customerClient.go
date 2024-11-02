@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"github.com/wasd0/is-common/pkg/logger"
 	"io"
 	"is-tgbot/internal/keys"
 	"is-tgbot/internal/model"
-	"is-tgbot/pkg/logger"
 	"net/http"
 )
 

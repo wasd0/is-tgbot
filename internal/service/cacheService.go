@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/redis/go-redis/v9"
+	"github.com/wasd0/is-common/pkg/logger"
 	"is-tgbot/internal/storage"
-	"is-tgbot/pkg/logger"
 )
 
 type CacheService interface {

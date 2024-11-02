@@ -5,9 +5,9 @@ import (
 	"errors"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
+	"github.com/wasd0/is-common/pkg/logger"
 	"is-tgbot/internal/command"
 	"is-tgbot/internal/keys"
-	"is-tgbot/pkg/logger"
 	"os"
 )
 
