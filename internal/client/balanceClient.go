@@ -12,7 +12,7 @@ import (
 	"net/http"
 )
 
-func GetBalance(request model.BalanceGetRequest) (model.BalanceGetResponse, error) {
+func GetBalance(request model.BalanceGetRequest) (*model.BalanceGetResponse, error) {
 	url := utils.NewUrl(getServerUrl() + keys.PathBalance)
 
 	if request.TelegramId != nil {
@@ -28,7 +28,7 @@ func GetBalance(request model.BalanceGetRequest) (model.BalanceGetResponse, erro
 	response, err := http.Get(url.Build())
 
 	if err != nil {
-		return model.BalanceGetResponse{}, err
+		return nil, err
 	}
 
 	defer closeResponse(response)
@@ -36,7 +36,7 @@ func GetBalance(request model.BalanceGetRequest) (model.BalanceGetResponse, erro
 	byteData, readError := io.ReadAll(response.Body)
 
 	if readError != nil {
-		return model.BalanceGetResponse{}, readError
+		return nil, readError
 	}
 
 	logger.Log().Infof("%s: response", keys.PathCustomer)
@@ -46,15 +46,19 @@ func GetBalance(request model.BalanceGetRequest) (model.BalanceGetResponse, erro
 	unmarshallErr := json.Unmarshal(byteData, &balance)
 
 	if unmarshallErr != nil {
-		return model.BalanceGetResponse{}, unmarshallErr
+		return nil, unmarshallErr
 	}
 	if balance.Data == nil {
 		var errResp model.ErrResponse
 		if jsonErr := json.Unmarshal(byteData, &errResp); jsonErr != nil {
-			return model.BalanceGetResponse{}, jsonErr
+			return nil, jsonErr
 		}
-		return model.BalanceGetResponse{}, errors.New(errResp.Message)
+		if errResp.Err != nil {
+			return nil, errors.New(errResp.Message)
+		} else {
+			return nil, nil
+		}
 	}
 
-	return *balance.Data, nil
+	return balance.Data, nil
 }

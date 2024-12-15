@@ -44,11 +44,16 @@ func (c *Menu) getBalanceFromServer(ctx context.Context, update *models.Update) 
 	sum, curr := "0.0", "RUB"
 	if err != nil {
 		logger.Log().Error(err, "get balance error:")
-		balance.Sum = &sum
-		balance.Currency = curr
+	}
+	if balance == nil {
+		balance = &model.BalanceGetResponse{
+			BalanceId: 0,
+			Currency:  curr,
+			Sum:       &sum,
+		}
 	}
 	c.cache.SetStruct(ctx, *getChatId(update), keys.RedisBalance, balance)
-	return balance
+	return *balance
 }
 
 func (c *Menu) getBalanceRequest(ctx context.Context, update *models.Update) model.BalanceGetRequest {
